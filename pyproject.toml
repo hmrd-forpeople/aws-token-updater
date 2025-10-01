@@ -1,0 +1,62 @@
+[project]
+name = "aws-token-updater"
+version = "0.1"
+description = "A program to update AWS tokens from a VM on the host using kion"
+readme = "README.md"
+authors = [{name = "Nicholas Hurley"}]
+license = "CC0-1.0"
+requires-python = ">=3.12"
+classifiers = []
+dependencies = [
+    "click"
+]
+
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project.urls]
+Homepage = "https://github.com/hmrd-forpeople/aws-token-updater"
+Changelog = "https://github.com/hmrd-forpeople/aws-token-updater/releases"
+Issues = "https://github.com/hmrd-forpeople/aws-token-updater/issues"
+CI = "https://github.com/hmrd-forpeople/aws-token-updater/actions"
+
+[project.scripts]
+aws-token-updater = "aws_token_updater.cli:cli"
+
+[project.optional-dependencies]
+dev = [
+    "autoflake",
+    "bandit",
+    "black",
+    "flake8",
+    "flake8-bugbear",
+    "Flake8-pyproject",
+    "isort",
+    "pep8-naming",
+    "pre-commit",
+    "pyinstaller",
+]
+test = ["pytest"]
+
+[tool.black]
+line-length = 99
+
+[tool.isort]
+line_length = 99
+profile = "black"
+
+[tool.pytest.ini_options]
+console_output_style = "progress"
+minversion = "7.2.2"
+python_files = "test_*.py"
+addopts = "-vvvv --ignore-glob .venv* --ignore-glob venv* --ignore VE"
+
+[tool.flake8]
+max-line-length = 99
+exclude = [".venv*", "venv*", "VE", "typings"]
+extend-ignore = ["E203", "E501"]
+extend-select = ["B950"]
+
+[tool.bandit]
+exclude_dirs = ["tmp", ".venv", "venv", "VE"]
