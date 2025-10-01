@@ -24,8 +24,9 @@ CI = "https://github.com/hmrd-forpeople/aws-token-updater/actions"
 [project.scripts]
 aws-token-updater = "aws_token_updater.cli:cli"
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = [
+    { include-group = "test" },
     "autoflake",
     "bandit",
     "black",
