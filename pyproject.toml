@@ -26,18 +26,29 @@ aws-token-updater = "aws_token_updater.cli:cli"
 
 [dependency-groups]
 dev = [
+    { include-group = "autoflake"},
+    { include-group = "bandit"},
+    { include-group = "black" },
+    { include-group = "flake8" },
+    { include-group = "installer" },
+    { include-group = "isort" },
     { include-group = "test" },
-    "autoflake",
+    "pre-commit",
+]
+autoflake = ["autoflake"]
+bandit = [
     "bandit",
-    "black",
+    "tomli",
+]
+black = ["black"]
+flake8 = [
     "flake8",
     "flake8-bugbear",
     "Flake8-pyproject",
-    "isort",
     "pep8-naming",
-    "pre-commit",
-    "pyinstaller",
 ]
+isort = ["isort"]
+installer = ["pyinstaller"]
 test = ["pytest"]
 
 [tool.black]

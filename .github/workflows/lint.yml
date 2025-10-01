@@ -1,0 +1,22 @@
+name: Code Linting
+
+on: pull_request
+
+jobs:
+  Lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: |
+          uv sync --only-group flake8
+      - name: Lint using flake8
+        run: |
+          uv run flake8 . --count --show-source --statistics --verbose
