@@ -1,0 +1,91 @@
+name: Build
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '**.py'
+      - 'pyproject.toml'
+      - '.github/workflows/build.yml'
+
+jobs:
+  Build-macOS:
+    if: ${{ github.ref_name == 'main' }}
+    name: Build on macOS
+    runs-on: macos-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Setup environment
+        run: |
+          uv sync --no-dev --group installer
+      - name: Build macOS binary
+        run: |
+          uv run pyinstaller -y -F aws-token-updater.py
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aws-token-updater-macos-${{ github.sha }}
+          path: dist/aws-token-updater
+          overwrite: true
+
+  Build-Linux:
+    if: ${{ github.ref_name == 'main' }}
+    name: Build on Linux
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Setup environment
+        run: |
+          uv sync --no-dev --group installer
+      - name: Build linux binary
+        run: |
+          uv run pyinstaller -y -F aws-token-updater.py
+      - name: Upload linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aws-token-updater-linux-${{ github.sha }}
+          path: dist/aws-token-updater
+          overwrite: true
+
+  Build-Windows:
+    if: ${{ github.ref_name == 'main' }}
+    name: Build on Windows
+    runs-on: windows-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v5
+      - name: Setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          python-version-file: ".python-version"
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+      - name: Setup environment
+        run: |
+          uv sync --no-dev --group installer
+      - name: Build windows binary
+        run: |
+          uv run pyinstaller -y -F aws-token-updater.py
+          ls -l dist/
+      - name: Upload windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: aws-token-updater-windows-${{ github.sha }}
+          path: dist/aws-token-updater.exe
+          overwrite: true

@@ -1,0 +1,47 @@
+name: Release
+on:
+  push:
+    tags:
+      - v*
+
+
+jobs:
+  Release:
+    name: Release aws-token-updater
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get build run id of this sha
+        env:
+          GH_TOKEN: ${{ secrets.GHA_CLI_PAT }}
+        run: |
+          shaRunId="$(gh api /repos/hmrd-forpeople/aws-token-updater/actions/workflows/build.yml/runs --method get -f status=success -f head_sha=${{ github.sha }} --jq ".workflow_runs[0].id")"
+          echo 'SHA_RUN_ID='$shaRunId >> $GITHUB_ENV
+      - name: Download built binaries
+        uses: actions/download-artifact@v5
+        with:
+          pattern: aws-token-updater-*-${{ github.sha }}
+          repository: ${{ github.repository }}
+          github-token: ${{ secrets.GHA_PAT }}
+          run-id: ${{ env.SHA_RUN_ID }}
+      - name: Make binaries executable
+        run: |
+          chmod +x aws-token-updater-*/*
+      - name: Rename binaries
+        run: |
+          mv aws-token-updater-macos-${{ github.sha }}/aws-token-updater aws-token-updater-macos
+          mv aws-token-updater-linux-${{ github.sha }}/aws-token-updater aws-token-updater-linux
+          mv aws-token-updater-windows-${{ github.sha }}/aws-token-updater.exe aws-token-updater-windows.exe
+      - name: Remove directories
+        run: |
+          rmdir aws-token-updater-macos-${{ github.sha }}
+          rmdir aws-token-updater-linux-${{ github.sha }}
+          rmdir aws-token-updater-windows-${{ github.sha }}
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          token: ${{ secrets.GHA_RELEASE_PAT }}
+          name: aws-token-updater-${{ github.ref_name }}
+          files: |
+            aws-token-updater-macos
+            aws-token-updater-linux
+            aws-token-updater-windows.exe
