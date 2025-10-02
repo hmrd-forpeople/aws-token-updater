@@ -1,0 +1,49 @@
+repos:
+  - repo: https://github.com/astral-sh/uv-pre-commit
+    rev: 0.8.22
+    hooks:
+      - id: uv-lock
+  - repo: local
+    hooks:
+      - id: black
+        name: black
+        entry: uv run python -m black
+        require_serial: true
+        language: system
+        types: [python]
+        stages: [pre-commit]
+      - id: isort
+        name: isort
+        entry: uv run python -m isort
+        require_serial: true
+        language: system
+        types: [python]
+        stages: [pre-commit]
+      - id: autoflake
+        name: autoflake
+        entry: uv run python -m autoflake --in-place --remove-all-unused-imports --remove-unused-variables
+        require_serial: true
+        language: system
+        types: [python]
+        stages: [pre-commit]
+      - id: flake8
+        name: flake8
+        entry: uv run python -m flake8 --count --show-source --statistics --verbose
+        language: system
+        pass_filenames: false
+        fail_fast: true
+        stages: [pre-commit]
+      - id: bandit
+        name: bandit
+        entry: uv run python -m bandit -ll -f txt -c pyproject.toml -r .
+        language: system
+        pass_filenames: false
+        fail_fast: true
+        stages: [pre-commit]
+      - id: pytest
+        name: pytest
+        entry: uv run python -m pytest
+        language: system
+        pass_filenames: false
+        fail_fast: true
+        stages: [pre-push]
