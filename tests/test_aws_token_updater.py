@@ -1,4 +1,5 @@
 from click.testing import CliRunner
+
 from aws_token_updater.cli import cli
 
 

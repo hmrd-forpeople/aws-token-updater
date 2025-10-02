@@ -8,11 +8,9 @@ import json
 import logging
 import logging.handlers
 import os
-import re
 import shutil
 import subprocess  # nosec: B404 this is all trusted inputs
 import sys
-import time
 from configparser import ConfigParser
 
 import click
@@ -45,7 +43,9 @@ def creds_need_update(creds_file_path: str, profile_name: str) -> bool:
         logging.debug(f"Credentials for [{profile_name}] expire in under 10 minutes. Updating.")
         return True
 
-    logging.debug(f"Credentials for [{profile_name}] are still good for at least 10 minutes. Not updating.")
+    logging.debug(
+        f"Credentials for [{profile_name}] are still good for at least 10 minutes. Not updating."
+    )
     return False
 
 
@@ -62,7 +62,9 @@ def replace_kion_yaml(kion_yaml_path: str) -> None:
     shutil.copyfile(kion_yaml_path, destination_yaml)
 
 
-def update_aws_credentials(creds_file_path: str, profile_name: str, aws_creds: dict[str, str]) -> None:
+def update_aws_credentials(
+    creds_file_path: str, profile_name: str, aws_creds: dict[str, str]
+) -> None:
     """Given the new access key, secret key, and session token, save
     them for the named profile in the file indicated.
     """
