@@ -29,16 +29,14 @@ repos:
       - id: flake8
         name: flake8
         entry: uv run python -m flake8 --count --show-source --statistics --verbose
+        types: [python]
         language: system
-        pass_filenames: false
-        fail_fast: true
         stages: [pre-commit]
       - id: bandit
         name: bandit
-        entry: uv run python -m bandit -ll -f txt -c pyproject.toml -r .
+        entry: uv run python -m bandit -ll -f txt -c pyproject.toml
         language: system
-        pass_filenames: false
-        fail_fast: true
+        types: [python]
         stages: [pre-commit]
       - id: pytest
         name: pytest
