@@ -38,7 +38,7 @@ def creds_need_update(creds_file_path: str, profile_name: str) -> bool:
     now = datetime.datetime.now(datetime.UTC)
     logging.debug(f"Expiration={expiration_time.utctimetuple()}")
     logging.debug(f"Now={now.utctimetuple()}")
-    if expiration_time <= (now - datetime.timedelta(minutes=10)):
+    if expiration_time <= (now + datetime.timedelta(minutes=10)):
         # Assume we're running no less than every 10 minutes
         logging.debug(f"Credentials for [{profile_name}] expire in under 10 minutes. Updating.")
         return True
@@ -91,10 +91,13 @@ def update_aws_credentials(
     logging.info(f"Credentials for profile [{profile_name}] updated successfully.")
 
 
-def get_new_aws_credentials(favourite: str) -> dict[str, str]:
+def get_new_aws_credentials(
+    favourite: str,
+    kion: str = "/opt/homebrew/bin/kion",
+) -> dict[str, str]:
     """Retrieve new AWS CLI credentials from kion using the CLI."""
     logging.info("Retrieving AWS credentials from kion")
-    json_output = subprocess.check_output(["kion", "favorite", "--credential-process", favourite])
+    json_output = subprocess.check_output([kion, "favorite", "--credential-process", favourite])
     logging.debug(f"New credentials: {json_output}")
     return json.loads(json_output)
 
@@ -119,6 +122,11 @@ def get_new_aws_credentials(favourite: str) -> dict[str, str]:
     default=os.path.join(os.getenv("HOME"), ".config", "kion.yml"),
     show_default=True,
 )
+@click.option(
+    "--kion-bin",
+    help="Path to kion executable",
+    default="/opt/homebrew/bin/kion",
+)
 @click.option("--profile", help="Name of AWS profile to update")
 @click.option("--favourite/--favorite", help="Name of kion favourite to use")
 @click.option(
@@ -129,7 +137,17 @@ def get_new_aws_credentials(favourite: str) -> dict[str, str]:
 )
 @click.option("--debug", is_flag=True, help="Print extra logging")
 @click.pass_context
-def cli(ctx, credentials, config, kion_yaml, profile, favourite, log, debug):
+def cli(
+    ctx,
+    credentials,
+    config,
+    kion_yaml,
+    kion_bin,
+    profile,
+    favourite,
+    log,
+    debug,
+):
     # Read configuration from the file if it exists, otherwise start
     # with an empty configuration and hope the user used the CLI args
     # Configuration prefers the CLI arguments if given, otherwise it
@@ -176,6 +194,11 @@ def cli(ctx, credentials, config, kion_yaml, profile, favourite, log, debug):
     if ctx.get_parameter_source("kion_yaml") == Source.DEFAULT and cfg.get("kion_yaml"):
         kion_yaml = cfg.get("kion_yaml")
 
+    # Just like the log destination file, we only want to override
+    # what came in from the CLI args if what came in was the default
+    if ctx.get_parameter_source("kion_bin") == Source.DEFAULT and cfg.get("kion_bin"):
+        cfg.get("kion_bin")
+
     if not all([profile, credentials, favourite]):
         raise ValueError(
             "Missing one configuration. Ensure configurtion file exists or all arguments are passed"
@@ -186,10 +209,14 @@ def cli(ctx, credentials, config, kion_yaml, profile, favourite, log, debug):
     logging.debug(f"Kion Favorite: {favourite}")
     logging.debug(f"Kion YAML: {kion_yaml}")
 
-    if not creds_need_update(credentials, profile):
-        logging.info("Credentials have not yet expired. Not updating.")
-        return 0
+    try:
+        if not creds_need_update(credentials, profile):
+            logging.info("Credentials have not yet expired. Not updating.")
+            return 0
 
-    replace_kion_yaml(kion_yaml)
-    aws_creds = get_new_aws_credentials(favourite)
-    update_aws_credentials(credentials, profile, aws_creds)
+        replace_kion_yaml(kion_yaml)
+        aws_creds = get_new_aws_credentials(favourite)
+        update_aws_credentials(credentials, profile, aws_creds)
+    except Exception:
+        logging.exception("Exception occurred during update")
+        raise
